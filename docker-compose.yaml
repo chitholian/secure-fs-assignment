@@ -1,0 +1,33 @@
+name: secure-fs
+
+services:
+  app:
+    build: .
+    environment:
+      DB_HOST: ${DB_HOST:-db}
+      DB_PORT: ${DB_PORT:-3306}
+      DB_USER: ${DB_USER:-atik}
+      DB_PASS: ${DB_PASS:-My-s3cure-Pa55}
+      DB_NAME: ${DB_NAME:-secure_fs}
+    volumes:
+      - ./:/var/www/html:ro
+      - storage:/var/www/html/storage
+      - ./contrib/php.ini:/usr/local/etc/php/conf.d/99-custom.ini:ro
+      - ./contrib/apache-vhost.conf:/etc/apache2/sites-enabled/000-default.conf:ro
+    ports:
+      - "8000:80"
+    restart: unless-stopped
+
+  db:
+    image: mysql:8.3
+    environment:
+      MYSQL_RANDOM_ROOT_PASSWORD: yes
+      MYSQL_USER: ${DB_USER:-atik}
+      MYSQL_PASSWORD: ${DB_PASS:-My-s3cure-Pa55}
+      MYSQL_DATABASE: ${DB_NAME:-secure_fs}
+    volumes:
+      - db_data:/var/lib/mysql
+
+volumes:
+  storage:
+  db_data:
