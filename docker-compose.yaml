@@ -9,14 +9,20 @@ services:
       DB_USER: ${DB_USER:-atik}
       DB_PASS: ${DB_PASS:-My-s3cure-Pa55}
       DB_NAME: ${DB_NAME:-secure_fs}
+      TZ: ${TZ:-Asia/Dhaka}
     volumes:
       - ./:/var/www/html:ro
-      - storage:/var/www/html/storage
       - ./contrib/php.ini:/usr/local/etc/php/conf.d/99-custom.ini:ro
       - ./contrib/apache-vhost.conf:/etc/apache2/sites-enabled/000-default.conf:ro
+      - ./storage:/var/www/html/storage
+      # - storage:/var/www/html/storage
     ports:
       - "8000:80"
     restart: unless-stopped
+    depends_on:
+      - db
+    command: >
+      bash -c "chown -R www-data:www-data /var/www/html/storage && apache2-foreground"
 
   db:
     image: mysql:8.3
@@ -25,9 +31,14 @@ services:
       MYSQL_USER: ${DB_USER:-atik}
       MYSQL_PASSWORD: ${DB_PASS:-My-s3cure-Pa55}
       MYSQL_DATABASE: ${DB_NAME:-secure_fs}
+      TZ: ${TZ:-Asia/Dhaka}
     volumes:
+      - ./contrib/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
       - db_data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    restart: unless-stopped
 
 volumes:
-  storage:
+  # storage:
   db_data:
