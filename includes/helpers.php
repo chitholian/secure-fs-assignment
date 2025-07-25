@@ -182,3 +182,31 @@ function get_expiry_time(string $created_at, int $expires_in): ?string
     }
     return date('Y-m-d H:i:s', $expires_in + strtotime($created_at));
 }
+
+/**
+ * Return a CSRF token for the current user session. Create one if not exists.
+ *
+ * @return string
+ */
+function get_csrf_token(): string
+{
+    if (!isset($_SESSION['csrf'])) {
+        $_SESSION['csrf'] = bin2hex(generate_token(48));
+    }
+    return $_SESSION['csrf'];
+}
+
+/**
+ * Checks for valid CSRF token. Redirects back with error message if validation fails.
+ *
+ * @return void
+ */
+function validate_csrf(): void
+{
+    $csrf = $_POST['_token'] ?? '';
+    if ($csrf !== get_csrf_token()) {
+        flash_message('error', 'Invalid CSRF token.');
+        go_back();
+        exit();
+    }
+}

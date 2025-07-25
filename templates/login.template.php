@@ -33,6 +33,7 @@
                     <label for="password" class="required">Password</label>
                     <input type="password" class="input-field" id="password" name="password" required>
                 </div>
+                <input type="hidden" name="_token" value="<?= get_csrf_token() ?>">
                 <div class="input">
                     <button type="submit" class="btn primary" style="float: right">Login</button>
                 </div>

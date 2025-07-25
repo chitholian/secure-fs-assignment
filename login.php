@@ -11,6 +11,7 @@ if (get_logged_in_user()) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    validate_csrf();
     $username = $_POST['username'] ?? '';
     $password = $_POST['password'] ?? '';
     if (empty($username) || empty($password)) {

@@ -6,6 +6,8 @@ $site_title = 'Home';
 $user = get_logged_in_user();
 
 if (isset($_POST['action'])) {
+    validate_csrf();
+
     if ($_POST['action'] == 'upload') {
         $file = $_FILES['file'];
 
@@ -202,6 +204,7 @@ ob_start();
 ?>
     <form method="post" enctype="multipart/form-data" class="d-flex justify-center">
         <input type="hidden" name="action" value="upload">
+        <input type="hidden" name="_token" value="<?= get_csrf_token() ?>">
         <fieldset>
             <legend>Upload New File</legend>
             <div class="d-flex" style="flex-wrap: wrap; align-items: end; justify-content: stretch">
@@ -306,6 +309,7 @@ ob_start();
     </div>
     <form id="action-form" method="post" style="display: none">
         <input type="hidden" name="action" id="action">
+        <input type="hidden" name="_token" value="<?= get_csrf_token() ?>">
         <input type="hidden" name="file_id" id="file_id">
     </form>
 
