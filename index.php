@@ -34,8 +34,8 @@ if (isset($_POST['action'])) {
 
         $mime_type = mime_content_type($file['tmp_name']);
         // Check allowed mime types.
-        if (!preg_match('#^application/pdf|image/.*$#', $mime_type)) {
-            flash_message('error', 'Only PDF and image files are allowed');
+        if (!preg_match('#^application/pdf|image/.*|text/(plain|csv)$#', $mime_type)) {
+            flash_message('error', 'Only PDF, image, text and CSV files are allowed');
             go_back();
             exit();
         }
@@ -210,7 +210,7 @@ ob_start();
             <div class="d-flex" style="flex-wrap: wrap; align-items: end; justify-content: stretch">
                 <div class="input">
                     <label for="file" class="required">Select a File</label>
-                    <input type="file" id="file" name="file" class="input-field" accept="application/pdf,image/*"
+                    <input type="file" id="file" name="file" class="input-field" accept="application/pdf,image/*,text/plain,text/csv"
                            required>
                 </div>
                 <div class="input">

@@ -92,7 +92,10 @@ function go_back(): void
  */
 function get_mime_to_extension(string $type): string
 {
-    return explode('/', $type)[1] ?? 'bin';
+    if ($type == 'text/plain') return 'txt';
+    $ext = explode('/', $type)[1] ?? 'bin';
+    // Bellow line helps e.g. "image/svg+xml" -> "svg"
+    return preg_split('/[^A-Za-z0-9]/', $ext, 2)[0];
 }
 
 /**
