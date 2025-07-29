@@ -213,3 +213,23 @@ function validate_csrf(): void
         exit();
     }
 }
+
+/**
+ * Sanitize a user provided filename to prevent directory traversal.
+ *
+ * @param string $filename Input file name.
+ * @return string Returns the sanitized and safe filename to use.
+ */
+function sanitize_filename(string $filename): string
+{
+    $filename = basename($filename);
+
+    // Remove slashes, backslashes and control characters.
+    $filename = preg_replace('#[\x00-\x1F\x7F/\\\\]+#', '', $filename);
+
+    // Remove leading double dots (..)
+    while (str_starts_with($filename, '..')) {
+        $filename = preg_replace('/^(\.\.)+/', '', $filename);
+    }
+    return $filename;
+}

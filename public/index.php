@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/includes/init.php';
+require_once __DIR__ . '/../includes/init.php';
 
 ensure_user_login();
 $site_title = 'Home';
@@ -16,6 +16,8 @@ if (isset($_POST['action'])) {
             $err = 'Please upload a file';
         } elseif ($file['error']) {
             $err = 'Failed to upload the file';
+        } elseif (MAX_UPLOAD_FILE_SIZE > 0 && $file['size'] > MAX_UPLOAD_FILE_SIZE) {
+            $err = 'The file size is too big, maximum allowed file size is ' . human_readable_size(MAX_UPLOAD_FILE_SIZE) . '.';
         }
 
         $filename = $file['name'];
@@ -30,6 +32,8 @@ if (isset($_POST['action'])) {
 
         if ($err) {
             flash_message('error', $err);
+            go_back();
+            exit();
         }
 
         $mime_type = mime_content_type($file['tmp_name']);
@@ -39,19 +43,44 @@ if (isset($_POST['action'])) {
             go_back();
             exit();
         }
-        $now = time();
-        $upload_location = date('Y/m', $now);
-        $stored_path = $upload_location . DIRECTORY_SEPARATOR . date('His-', $now) . rand(100000, 999999) . '.' . get_mime_to_extension($mime_type);
 
         // Upload the file to some directories based on upload date,
         // it will help mitigating file limit exceeded errors per directory.
         // Create the upload location if not exists
+        $now = time();
+        $upload_location = date('Y/m', $now);
         $storage_path = UPLOAD_DIR . DIRECTORY_SEPARATOR . $upload_location;
         if (!is_dir($storage_path) && !@mkdir($storage_path, 0755, true)) {
             flash_message('error', 'Failed to create upload directory');
             go_back();
             exit();
         }
+
+        // Ensure not to override an existing file.
+        $sanitized_name = sanitize_filename($file['name']);
+
+        /*
+         * Function to rename a file if another file exists with the same name.
+         */
+        function resolve_duplicate_name($original_name, $count): string
+        {
+            if ($count < 1) {
+                return $original_name;
+            }
+            $path_info = pathinfo($original_name);
+            $filename = $path_info['filename'];
+            $extension = $path_info['extension'] ?? '';
+            $ext_len = strlen($extension);
+            return "$filename ($count)" . ($ext_len ? ".$extension" : '');
+        }
+
+        $dup_count = 0;
+        do {
+            $stored_filename = resolve_duplicate_name($sanitized_name, $dup_count);
+            $stored_path = $upload_location . DIRECTORY_SEPARATOR . $stored_filename;
+            $dup_count++;
+        } while (file_exists(UPLOAD_DIR . DIRECTORY_SEPARATOR . $stored_path));
+
         // Move the uploaded file to target storage location.
         $uploaded = move_uploaded_file($file['tmp_name'], UPLOAD_DIR . DIRECTORY_SEPARATOR . $stored_path);
         if (!$uploaded) {
@@ -207,17 +236,23 @@ ob_start();
         <input type="hidden" name="_token" value="<?= get_csrf_token() ?>">
         <fieldset>
             <legend>Upload New File</legend>
-            <div class="d-flex" style="flex-wrap: wrap; align-items: end; justify-content: stretch">
+            <div class="d-flex" style="flex-wrap: wrap; align-items: start; justify-content: stretch">
                 <div class="input">
                     <label for="file" class="required">Select a File</label>
-                    <input type="file" id="file" name="file" class="input-field" accept="application/pdf,image/*,text/plain,text/csv"
+                    <input type="file" id="file" name="file" class="input-field"
+                           accept="application/pdf,image/*,text/plain,text/csv"
                            required>
+                    <?php if (MAX_UPLOAD_FILE_SIZE > 0) { ?>
+                        <small style="color: blue">
+                            * Max file size: <?= human_readable_size(MAX_UPLOAD_FILE_SIZE) ?>
+                        </small>
+                    <?php } ?>
                 </div>
                 <div class="input">
                     <label for="name">Customized Name</label>
                     <input type="text" maxlength="255" class="input-field" id="name" name="name"/>
                 </div>
-                <div class="input">
+                <div class="input" style="align-self: center">
                     <button type="submit" class="btn">Upload</button>
                 </div>
             </div>
@@ -332,7 +367,13 @@ ob_start();
         document.querySelector('#file').addEventListener('change', (event) => {
             let newFileName = ''
             if (event.target.files?.length) {
-                newFileName = event.target.files[0].name
+                let maxFileSize = <?= MAX_UPLOAD_FILE_SIZE ?>;
+                if (maxFileSize > 0 && event.target.files[0].size > maxFileSize) {
+                    event.target.value = null;
+                    alert('Maximum file size to upload is <?= human_readable_size(MAX_UPLOAD_FILE_SIZE) ?>');
+                } else {
+                    newFileName = event.target.files[0].name
+                }
             }
             document.querySelector('#name').value = newFileName
         })
@@ -384,4 +425,4 @@ ob_start();
 <?php
 
 $body_content = ob_get_clean();
-include __DIR__ . '/templates/dashboard.template.php';
+include __DIR__ . '/../templates/dashboard.template.php';

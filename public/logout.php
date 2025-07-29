@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/includes/init.php';
+require_once __DIR__ . '/../includes/init.php';
 
 unset_logged_in_user();
 session_destroy();

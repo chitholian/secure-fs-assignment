@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/includes/init.php';
+require_once __DIR__ . '/../includes/init.php';
 
 if (get_logged_in_user()) {
     $next = $_GET['next'] ?? '/';
@@ -50,4 +50,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 $site_title = 'Login';
 
-include __DIR__ . '/templates/login.template.php';
+include __DIR__ . '/../templates/login.template.php';

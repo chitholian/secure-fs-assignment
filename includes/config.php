@@ -8,3 +8,4 @@ define('DB_NAME', getenv('DB_NAME') ?: 'secure_fs');
 define('TZ', getenv('TZ') ?: 'Asia/Dhaka');
 const UPLOAD_DIR = __DIR__ . '/../storage/uploads';
 const DOWNLOAD_LINK_EXPIRY = 5 * 60; // 5 minutes. Set to 0 for never to expire.
+const MAX_UPLOAD_FILE_SIZE = 5 * 1024 * 1024; // 5MiB

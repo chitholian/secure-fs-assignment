@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/includes/init.php';
+require_once __DIR__ . '/../includes/init.php';
 
 // If it is true, then we shall mark the download token as used.
 $should_increment_token_usage = false;
